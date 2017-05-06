@@ -1308,12 +1308,6 @@ table(pred1)
 library(irr)
 kappa2(data.frame(test$churn,pred1))
 
-# In terms of classification performance, the kappa matrix is  0.13 . 
-## Ideally Prefered Kappa matrix value should be more than 0.60. So it seems this model is doing a very bad job. 
-### But as informed to us, the data quality being bad this cannot be helped.
-
-
-
 #Confusion Matrix
 library(caret)
 confusionMatrix(pred1,test$churn,positive = "1")
