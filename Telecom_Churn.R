@@ -124,7 +124,7 @@ dat4$churn_perc<-dat4$n/dat4$N
 dat4$GreaterThan<-unclass(tele1%>%mutate(dec=ntile(mou_Range,n=10))%>%group_by(dec)%>%summarise(min(mou_Range)))[[2]]
 dat4$LessThan<-unclass(tele1%>%mutate(dec=ntile(mou_Range,n=10))%>%group_by(dec)%>%summarise(max(mou_Range)))[[2]]
 dat4$varname<-rep("mou_Range",nrow(dat4))                  
-
+                  
 
 # <5> Variable "change_mou" 
 summary(tele1$change_mou)
@@ -492,7 +492,7 @@ dat46$varname<-rep("datovr_Range",nrow(dat46))
 
 
 # <47> Variable "drop_dat_Mean" ===>> ***Getting less than 4 deciles. 
-#And less than 95% data has values greater than 0. So Omit***
+        #And almost 95% data has values 0. So Omit***
 summary(tele1$drop_dat_Mean)
 tele1%>%mutate(dec=ntile(drop_dat_Mean,n=4))%>%count(churn,dec)%>%filter(churn==1)->dat47
 dat47$varname<-rep("drop_dat_Mean",nrow(dat47))
@@ -764,7 +764,7 @@ datC39
 
 #Adding datC19 to datC38 objects to create a datC object
 datC_1<-rbind(datC19,datC20,datC21,datC22,datC23,datC24,datC25,datC26,datC27,
-              datC28,datC29)
+            datC28,datC29)
 
 datC_2<-rbind(datC31,datC32,datC34,datC35,datC36,datC37,datC38)
 
@@ -916,7 +916,7 @@ table(tele1$churn)/nrow(tele1)
 
 
 # Convert to Factor and Create Dummy Variables => 
-#age1, age2, models, hnd_price, actvsubs,uniqsubs, forgntvl, mtrcycle, truck, Customer ID, Churn
+      #age1, age2, models, hnd_price, actvsubs,uniqsubs, forgntvl, mtrcycle, truck, Customer ID, Churn
 
 
 str(tele1$age1)
@@ -1017,7 +1017,7 @@ step(mod,direction = "both")
 
 
 
-## ***** Dummy Vars for Factor Vars with significant levels ***** ##
+## ***** Creating Dummy Vars for Factor Vars with significant levels ***** ##
 
 summary(tele1$asl_flag)
 train$asl_flag_Y<-ifelse(train$asl_flag == "Y", 1, 0)
@@ -1279,7 +1279,22 @@ head(pred)
 #Assuming cut-off probablity as per the churn rate in data set
 table(tele1$churn)/nrow(tele1)
 
-# So using cut-off of 0.2380871. 
+#choosing cutoff value according to kappa value
+s<-seq(0.2,0.5,0.01)
+n<-1 
+a<-as.vector(length(s))
+for (i in s ) {
+  
+  print(i)
+  test$result<-ifelse(test$pred>i,1,0)
+  a[n]<-confusionMatrix(test$result,test$churn,positive = "1")$overall[2]
+  
+  print(n)
+  n=n+1
+}
+max(a)
+#As maximum kappa is related to cutoff 0.23 we would go with this cutoff value
+
 
 pred1<-ifelse(pred>=0.2380871,1,0)
 table(pred1)
@@ -1294,8 +1309,8 @@ library(irr)
 kappa2(data.frame(test$churn,pred1))
 
 # In terms of classification performance, the kappa matrix is  0.13 . 
-## Ideally Prefered Kappa matrix value should be more than 0.60. 
-### So it seems this model is doing a very bad job.
+## Ideally Prefered Kappa matrix value should be more than 0.60. So it seems this model is doing a very bad job. 
+### But as informed to us, the data quality being bad this cannot be helped.
 
 
 
@@ -1324,7 +1339,7 @@ auc
 
 # The auc is 0.5859658 which is more than 0.50. 
 # Also the curve seems to be well above the grey line.
-# So the model seems to be ok and acceptable.
+# So the model seems to be ok and is acceptable.
 
 
 #Gains Chart
@@ -1354,6 +1369,9 @@ library(lm.beta)
 lm.beta(mod6)
 
 # The above library is not available to me on LMS so I am manually looking at the beta coefficients 
+head(sort(abs(mod6$coefficients),decreasing = T),10)
+summary(mod6)
+
 # from the summary of my final model, "Mod6".
 
 ## The model results show that the top 5 factors affecting churn are:
@@ -1371,12 +1389,16 @@ lm.beta(mod6)
 # var area_southflrda represents var SOUTH FLORIDA AREA, Var retdays_1 represents valid values for var retdays,i.e.
 # values more than "0"
 
+# Thus family bundles should be rolled out for families with 7 unique subscribers. Special offers should be given
+# to customers who makes retention calls, at the earliest as per their grieviances. Special plans should be rolled out for 
+# people with Asian Ethnicity. Special special plans should be rolled out for customers located in NORTHWEST/ROCKY 
+# MOUNTAIN AREA and SOUTH FLORIDA AREA. 
 
 
 #   2.  Validation of survey findings. 
 # a) Whether "cost and billing" and "network and service quality" are important factors influencing churn behaviour.  
 
-# It seems the following variables explain "cost and billing" and "network and service quality"
+# The following variables explain "cost and billing" and "network and service quality"
 
 # Variables totmrc_Mean i.e. 'base plan charge' representing cost to customer, 
 # var rev_Range i.e. 'Range of Revenue(charge amount)' representing billing amount,
@@ -1398,11 +1420,11 @@ lm.beta(mod6)
 # increase in churn by 0.000197018/unit
 
 # Having said that, if we notice above mentioned beta values, a unit increase in them is having almost 0% impact 
-# on churn. SO it seems cost and billing is not very important factors here influencing churn behaviour.
+# on churn. SO it seems cost and billing is not very important factors here influencing churn behaviour at Mobicom.
 
 
 
-# It seems the following variables explain "network and service quality" 
+# The following variables explain "network and service quality" 
 
 # VARIABLE          BETA COEFFICIENT
 
@@ -1452,7 +1474,7 @@ lm.beta(mod6)
 # special offers should be made to them depending upon their grieviances.
 
 
-
+ 
 
 #  2b) Are data usage connectivity issues turning out to be costly? In other words, is it leading to churn? 
 
@@ -1476,7 +1498,7 @@ quantile(tele$plcd_dat_Mean,prob=c(0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.82,
 #   towards attaining more customers to use data and also towards proving quality network connectivity
 #   and service to provide maximum customer satisfaction and reduce Churn.
 #   Since there is not enough usable data for the above variables they are not showing any influence 
-#   on the Churn Behaviour.
+#   on the Churn Behaviour at Mobicom.
 
 
 
@@ -1491,14 +1513,13 @@ quantile(tele$plcd_dat_Mean,prob=c(0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.82,
 #   of churn behaviour. 
 #   Though this might be a matter of concern for few individual customers and they could be 
 #   catered to on case to case basis. But overall rate plan migration as a proactive retention strategy
-#   might not help much.
+#   might not help much at Mobicom.
 
 
 #   4. What would be your recommendation on how to use this churn model for prioritisation
 #   of customers for a proactive retention campaigns in the future?
 
 # Solution:
-
 #Gains Chart
 library(gains)
 gains(test$churn,predict(mod6,type="response",newdata=test),groups = 10)
@@ -1522,9 +1543,8 @@ nrow(Targeted)
 
 write.csv(Targeted,"Target_Customers.csv",row.names = F)
 
-
-# Thus Using the model can be used to predict customers with high probability of Churn and extract the 
-# target list using their "Customer ID". 
+#   Thus Using the model can be used to predict customers with high probability of Churn and extract the 
+#   target list using their "Customer ID". 
 
 
 
@@ -1534,6 +1554,7 @@ write.csv(Targeted,"Target_Customers.csv",row.names = F)
 # which subscribers should prioritized if "revenue saves" is also a priority besides controlling churn. 
 # In other words, controlling churn is the primary objective and revenue saves is the secondary objective.
 
+# Solution:
 pred5<-predict(mod6, type="response", newdata=test)
 test$prob<-predict(mod6,type="response",newdata=test)
 quantile(test$prob,prob=c(0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1))
@@ -1549,12 +1570,12 @@ table(Revenue_Levels)
 
 table(pred6,Revenue_Levels)
 
-## Thus this table can be used to select which level customers are to be targeted
-## and the Target list can be extracted as follws: 
+##  Thus this table can be used to select the levels of customers are to be targeted
+##  and the Target list can be extracted as follows:
 
 test$prob_levels<-ifelse(pred5<0.20,"Low_Score",ifelse(pred5>=0.20 & pred5<0.30,"Medium_Score","High_Score"))
 test$Revenue_Levels<-ifelse(test$totrev<670.660,"Low_Revenue",ifelse(test$totrev>=670.660 & 
-                                                                       test$totrev<1034.281,"Medium_Revenue","High_Revenue"))
+                                                                  test$totrev<1034.281,"Medium_Revenue","High_Revenue"))
 
 Targeted1<-test[test$prob_levels=="High_Score" & test$Revenue_Levels=="High_Revenue","Customer_ID"]
 Targeted1<-as.data.frame(Targeted1)
